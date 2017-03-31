@@ -46,15 +46,18 @@ app.post('/upload-video', rawBody, function (req, res) {
         var link = crypto.createHash('md5').update(str).digest('hex');
         console.log(link);
 
-        var base = 'C:/Users/jacobth/Documents/ReceiptBackend';
+        var base = 'C:/Users/jacobth/Documents/GitHub/ReciptBackend';
 
         var videoFile = ".mp4";
         var newPath = base + "/uploads/video/" + link + videoFile;
 
+        var imgFile = ".png";
+        var resultPath = base + "/results/" + link + imgFile;
+
         console.log(newPath);
     
-    async.waterfall([
-        function writeFile(writeFileCallback) {
+        async.waterfall([
+          function writeFile(writeFileCallback) {
             
             fs.writeFile(newPath, req.rawBody, function (error) {
                   if (!error) {
@@ -66,19 +69,24 @@ app.post('/upload-video', rawBody, function (req, res) {
         },
 
         function processFile(processFileCallback) {
-            child = exec('java -cp ' +  base + '/kvittoscanner_main.jar Main ' + newPath,
+            child = exec('java -cp ' +  base + '/kvittoscanner_main.jar Main ' + newPath + ' ' + resultPath,
               
               function (error, stdout, stderr){
       
                 console.log('stdout: ' + stdout);
                 console.log('stderr: ' + stderr);
     
-                if(!error){
+                if(error){
                   console.log('exec error: ' + error);
                 }
             
                 processFileCallback(null);
               });
+        },
+
+        function sendFile(sendFileCallback) {
+          res.sendFile(resultPath);
+          sendFileCallback(null);
         }
 
       ], function (error) {
@@ -86,15 +94,12 @@ app.post('/upload-video', rawBody, function (req, res) {
           }
     });
        
-        var imgFile = ".png";
-    var sendPath = __dirname + "/results/test"  + imgFile;
-    
-    //res.sendFile(sendPath);
-
-    //fs.unlink(sendPath);
-    //fs.unlink(newPath);         
+   // fs.unlink(resultPath);
+   // fs.unlink(newPath);         
   }
 });
+
+
 
 app.post('/upload-image', rawBody, function (req, res) {
 
