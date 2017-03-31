@@ -79,6 +79,10 @@ app.post('/upload-video', rawBody, function (req, res) {
                 if(error){
                   console.log('exec error: ' + error);
                 }
+
+                else {
+                  console.log('image written successfully');
+                }
             
                 processFileCallback(null);
               });
@@ -86,16 +90,22 @@ app.post('/upload-video', rawBody, function (req, res) {
 
         function sendFile(sendFileCallback) {
           res.sendFile(resultPath);
+          
           sendFileCallback(null);
+        },
+
+        function removeFiles(removeFilesCallback) {
+          fs.unlink(resultPath);
+          fs.unlink(newPath);
+
+          removeFilesCallback(null);  
         }
 
       ], function (error) {
           if (error) {
           }
     });
-       
-   // fs.unlink(resultPath);
-   // fs.unlink(newPath);         
+             
   }
 });
 
