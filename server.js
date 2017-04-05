@@ -9,6 +9,7 @@ var port = 3000;
 var ip = app.adress;
 var async = require('async'); 
 var exec = require('child_process').exec, child;
+var vision = require('@google-cloud/vision');
 
 app.listen(port, function () {
   console.log('Listening on port ' + port);
@@ -95,8 +96,8 @@ app.post('/upload-video', rawBody, function (req, res) {
         },
 
         function removeFiles(removeFilesCallback) {
-          fs.unlink(resultPath);
-          fs.unlink(newPath);
+         // fs.unlink(resultPath);
+         // fs.unlink(newPath);
 
           removeFilesCallback(null);  
         }
@@ -109,9 +110,7 @@ app.post('/upload-video', rawBody, function (req, res) {
   }
 });
 
-
-
-app.post('/upload-image', rawBody, function (req, res) {
+app.post('/scan', rawBody, function (req, res) {
 
     if (req.rawBody && req.bodyLength > 0) {
 
@@ -122,19 +121,37 @@ app.post('/upload-image', rawBody, function (req, res) {
         var link = crypto.createHash('md5').update(str).digest('hex');
         console.log(link);
 
-        var imageFile = ".png";
-        var newPath = __dirname + "/uploads/hdr/" + link + imageFile;
-
-      fs.writeFile(newPath, req.rawBody, function (err) {
+        var visionClient = vision({
+          keyFilename: 'C:/Users/jacobth/Documents/GitHub/ReciptBackend/receptscanner-17776558c994.json',
+          projectId: 'receptscanner'
         });
 
-        var child = require('child_process').spawn('java', ['-jar', 'kvittoscanner.jar', newPath]);
+        var base = 'C:/Users/jacobth/Documents/GitHub/ReciptBackend';
 
-        var imgFile = ".png";
-    var sendPath = __dirname + "/results/test"  + imgFile;
-    res.sendFile(sendPath); 
+        var imageFile = ".jpg";
+        var image = base + "/uploads/image/" + link + imageFile;
 
-    fs.unlink(sendPath);
-    fs.unlink(newPath);
-  }
+         fs.writeFile(image, req.rawBody, function (error) {
+            if (!error) {
+              console.log("File successfully written");
+              visionClient.detectText(image, function(err, text) {
+              
+              if(!err) {
+                console.log(text);
+                res.send(text);
+              }
+
+              else {
+                res.send('!');
+              }
+
+              });
+            }
+
+            else {
+              res.send('!');
+            } 
+
+          });
+    }
 });
