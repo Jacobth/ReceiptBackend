@@ -155,3 +155,41 @@ app.post('/scan', rawBody, function (req, res) {
           });
     }
 });
+
+app.post('/upload-image', rawBody, function (req, res) {
+
+    if (req.rawBody && req.bodyLength > 0) {
+        var decoder = new StringDecoder('utf8');
+        var str = decoder.write(req.rawBody);
+        var arr = str.split("start");
+        var message = arr[1].split(",");
+        var folder = message[0];
+        var count = message[1];
+      
+        var crypto = require('crypto');
+        var link = crypto.createHash('md5').update(str).digest('hex');
+        console.log(link);
+
+        var imageFile = ".jpg";
+        var newPath = __dirname + "/uploads/hdr/" + folder;
+        var imgPath = newPath + "/" + link + imageFile;
+
+        if(!fs.existsSync(newPath)) {
+          fs.mkdirSync(newPath);
+        }
+
+        fs.writeFile(imgPath, req.rawBody, function (err) {
+          if(!err) {
+            res.send('Completed');
+          }
+
+          else {
+            res.send('Error');
+          }
+
+        });
+  }       
+});
+
+
+
