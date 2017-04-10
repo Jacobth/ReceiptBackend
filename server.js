@@ -52,7 +52,7 @@ app.post('/upload-video', rawBody, function (req, res) {
         var videoFile = ".mp4";
         var newPath = base + "/uploads/video/" + link + videoFile;
 
-        var imgFile = ".png";
+        var imgFile = ".jpg";
         var resultPath = base + "/results/" + link + imgFile;
 
         var args = 'video ' + newPath + ' ' + resultPath; 
