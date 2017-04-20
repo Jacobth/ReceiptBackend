@@ -5,11 +5,12 @@ var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
 var bodyParser = require('body-parser');
 var StringDecoder = require('string_decoder').StringDecoder;
-var port = 3000;
+var port = 3389;
 var ip = app.adress;
 var async = require('async'); 
 var exec = require('child_process').exec, child;
 var vision = require('@google-cloud/vision');
+var base = __dirname;
 
 app.listen(port, function () {
   console.log('Listening on port ' + port);
@@ -47,7 +48,7 @@ app.post('/upload-video', rawBody, function (req, res) {
         var link = crypto.createHash('md5').update(str).digest('hex');
         console.log(link);
 
-        var base = 'C:/Users/jacobth/Documents/GitHub/ReciptBackend';
+     
 
         var videoFile = ".mp4";
         var newPath = base + "/uploads/video/" + link + videoFile;
@@ -130,7 +131,7 @@ app.post('/scan', rawBody, function (req, res) {
           projectId: 'receptscanner'
         });
 
-        var base = 'C:/Users/jacobth/Documents/GitHub/ReciptBackend';
+       
 
         var imageFile = ".jpg";
         var image = base + "/uploads/image/" + link + imageFile;
@@ -209,7 +210,7 @@ app.post('/get-hdr', rawBody, function (req, res) {
         var link = crypto.createHash('md5').update(str).digest('hex');
         console.log(link);
 
-        var base = 'C:/Users/jacobth/Documents/GitHub/ReciptBackend';
+   
         var newPath = base + '/uploads/hdr/' + path;
         var imageFile = ".jpg";
         var resultPath = base + "/results/" + link + imageFile; 
@@ -242,13 +243,6 @@ app.post('/get-hdr', rawBody, function (req, res) {
           res.sendFile(resultPath);
           
           sendFileCallback(null);
-        },
-
-        function removeFiles(removeFilesCallback) {
-         // fs.unlink(resultPath);
-         // fs.unlink(newPath);
-
-          removeFilesCallback(null);  
         }
 
       ], function (error) {
