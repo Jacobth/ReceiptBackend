@@ -5,12 +5,13 @@ var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
 var bodyParser = require('body-parser');
 var StringDecoder = require('string_decoder').StringDecoder;
-var port = 3389;
+var port = 80;
 var ip = app.adress;
 var async = require('async'); 
 var exec = require('child_process').exec, child;
 var vision = require('@google-cloud/vision');
 var base = __dirname;
+var request = require('request');
 
 app.listen(port, function () {
   console.log('Listening on port ' + port);
@@ -40,9 +41,11 @@ function rawBody(req, res, next) {
 app.post('/upload-video', rawBody, function (req, res) {
 
     if (req.rawBody && req.bodyLength > 0) {
-
         var decoder = new StringDecoder('utf8');
         var str = decoder.write(req.rawBody);
+        var arr = str.split("start");
+        var token = arr[1];
+        console.log(token);
 
         var crypto = require('crypto');
         var link = crypto.createHash('md5').update(str).digest('hex');
@@ -74,35 +77,42 @@ app.post('/upload-video', rawBody, function (req, res) {
 
         function processFile(processFileCallback) {
             child = exec('java -cp ' +  base + '/kvittoscanner_main.jar Main ' + args,
-              
               function (error, stdout, stderr){
       
-                console.log('stdout: ' + stdout);
-                console.log('stderr: ' + stderr);
-    
-                if(error){
-                  console.log('exec error: ' + error);
-                }
+                  if(error){
+                    console.log('exec error: ' + error);
+                  }
 
-                else {
-                  console.log('image written successfully');
-                }
+                  else {
+                    console.log('image written successfully');
+                  }
             
-                processFileCallback(null);
-              });
+                  processFileCallback(null);
+                });
+
+            child.stdout.on('data', function(data) {
+          console.log(data);
+          if(data != null) {
+            sendMessageToUser(token, { message: data});   
+          }
+            
+      });
+
+      child.stderr.on('data', function (data) {
+          console.log('stderr: ' + data.toString());
+          console.log('process failed');
+      });
         },
 
         function sendFile(sendFileCallback) {
-          res.sendFile(resultPath);
-          
-          sendFileCallback(null);
+            res.sendFile(resultPath);
+            sendFileCallback(null);
         },
 
         function removeFiles(removeFilesCallback) {
          // fs.unlink(resultPath);
          // fs.unlink(newPath);
-
-          removeFilesCallback(null);  
+            removeFilesCallback(null);  
         }
 
       ], function (error) {
@@ -252,3 +262,30 @@ app.post('/get-hdr', rawBody, function (req, res) {
              
   }
 });
+
+function sendMessageToUser(deviceId, message) {
+  request({
+    url: 'https://fcm.googleapis.com/fcm/send',
+    method: 'POST',
+    headers: {
+      'Content-Type' :' application/json',
+      'Authorization': 'key=AIzaSyC_uRR34-4miIdE808MvB0KkDg1Kpe42Jg'
+    },
+    body: JSON.stringify(
+      { "data": message
+        ,
+        "to" : deviceId
+      }
+    )
+  }, function(error, response, body) {
+    if (error) {
+      console.error(error, response, body);
+    }
+    else if (response.statusCode >= 400) {
+      console.error('HTTP Error: '+response.statusCode+' - '+response.statusMessage+'\n'+body);
+    }
+    else {
+      console.log('Done!');
+    }
+  });
+}
