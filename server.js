@@ -141,33 +141,41 @@ app.post('/scan', rawBody, function (req, res) {
           projectId: 'receptscanner'
         });
 
-       
-
+        var result = '';
         var imageFile = ".jpg";
         var image = base + "/uploads/image/" + link + imageFile;
 
-         fs.writeFile(image, req.rawBody, function (error) {
-            if (!error) {
-              console.log("File successfully written");
-              visionClient.detectText(image, function(err, text) {
-              
-              if(!err) {
-                console.log(text);
-                res.send(text);
-              }
+        async.waterfall([
+            function readFile(readFileCallback) {
+              fs.writeFile(image, req.rawBody, function (error) {
 
-              else {
-                res.send('!');
-              }
+                if (!error) {
+                  console.log("File successfully written");
+                  visionClient.detectText(image).then((results) => {
 
+                const detections = results[0];
+                console.log('Text:');
+                detections.forEach((text) => result += text);
+                readFileCallback(null);
               });
-            }
+                }
 
-            else {
-              res.send('!');
-            } 
+                else {
+                  res.send('!');
+                } 
+            });
+        },
 
-          });
+          function sendFile(sendFileCallback) {
+            res.send(result);
+            console.log(result);
+            sendFileCallback(null);
+          }
+
+         ], function (error) {
+          if (error) {
+          }
+      });
     }
 });
 
