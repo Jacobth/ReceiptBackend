@@ -91,17 +91,17 @@ app.post('/upload-video', rawBody, function (req, res) {
                 });
 
             child.stdout.on('data', function(data) {
-          console.log(data);
-          if(data != null) {
-            sendMessageToUser(token, { message: data});   
-          }
+              console.log(data);
+              if(data != null) {
+                sendMessageToUser(token, { message: data});   
+              }
             
-      });
+            });
 
-      child.stderr.on('data', function (data) {
-          console.log('stderr: ' + data.toString());
-          console.log('process failed');
-      });
+            child.stderr.on('data', function (data) {
+                console.log('stderr: ' + data.toString());
+                console.log('process failed');
+            });
         },
 
         function sendFile(sendFileCallback) {
@@ -223,6 +223,7 @@ app.post('/get-hdr', rawBody, function (req, res) {
         var arr = str.split(',');
         var path = arr[0];
         var method = arr[1];
+        var token = arr[2];
 
         var crypto = require('crypto');
         var link = crypto.createHash('md5').update(str).digest('hex');
@@ -255,6 +256,19 @@ app.post('/get-hdr', rawBody, function (req, res) {
             
                 processFileCallback(null);
               });
+
+            child.stdout.on('data', function(data) {
+              console.log(data);
+              if(data != null) {
+                sendMessageToUser(token, { message: data});   
+              }
+            
+            });
+
+            child.stderr.on('data', function (data) {
+                console.log('stderr: ' + data.toString());
+                console.log('process failed');
+            });
         },
 
         function sendFile(sendFileCallback) {
