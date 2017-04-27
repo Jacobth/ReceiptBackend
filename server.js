@@ -101,6 +101,9 @@ app.post('/upload-video', rawBody, function (req, res) {
             child.stderr.on('data', function (data) {
                 console.log('stderr: ' + data.toString());
                 console.log('process failed');
+                if(data !=null) {
+                  sendMessageToUser(token, { message: data}); 
+                }
             });
         },
 
@@ -268,6 +271,9 @@ app.post('/get-hdr', rawBody, function (req, res) {
             child.stderr.on('data', function (data) {
                 console.log('stderr: ' + data.toString());
                 console.log('process failed');
+                if(data !=null) {
+                  sendMessageToUser(token, { message: data}); 
+                }
             });
         },
 
